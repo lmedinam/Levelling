@@ -1,0 +1,56 @@
+option, -echo, -warn, -info;
+!system, "ln -fns /afs/cern.ch/eng/lhc/optics/HLLHCV1.0 slhc";
+!system, "ln -fns /afs/cern.ch/eng/lhc/optics/V6.503 db5";
+
+option, -echo, -info, -warn;
+!call, file = "slhc/toolkit/macro.madx";
+
+option, -echo, -warn, -info;
+
+!REAL CONST l.TAN   = 3.7;
+!REAL CONST l.TANAL = l.TAN;
+!REAL CONST l.TANAR = l.TAN;
+!REAL CONST l.TANC  = l.TAN;
+!REAL CONST l.TCT   = 1.0;
+!REAL CONST l.TCTH  = l.TCT;
+!REAL CONST l.TCTVA = l.TCT;
+
+!call, file = "db5/V6.5.seq";
+
+option, -echo, -warn, -info, no_fatal_stop;
+
+!call, file = "slhc/hllhc_sequence.madx";
+
+!bs_type = 4;
+!ap_mqx = 150;
+
+!//call, file = "slhc/opt.madx";
+
+call, file = "HLLHC-sb150.seq";
+
+//call, file = "updateIBS.madx";
+value, NRJ, ppb, dpp, epsxn, epsyn, sigs;
+
+beam, particle = proton, energy = NRJ, NPART = ppb, sige = dpp, ex:= epsxn/(NRJ/0.93827231), ey := epsyn/(NRJ/0.93827231), sigt = sigs;
+show, beam;
+
+use, sequence = lhcb1;
+!exec, check_ip(b1); 
+
+set,format=".15g";
+select,flag=twiss,clear;
+select,flag=twiss,column=name,s,l,lrad,angle,k1l,k2l,k3l,hkick,vkick,kick,tilt,betx,bety,alfx,alfy,dx,dpx,dy,dpy,mux,muy,x,y,px,py,wx,wy,phix,phiy,n1,ddx,ddy,ddpx,ddpy,keyword,aper_1,aper_2,aper_3,aper_4,rtol,xtol,ytol,apertype;
+select, flag=aperture, column=name,s,n1,aper_1,aper_2,aper_3,aper_4,rtol,xtol,ytol,betx,bety,dx,dy,x,y,apertype;
+use,sequence=lhcb1;
+twiss,centre; //,file=twiss_lhcb1.tfs;
+
+use, sequence = lhcb1;
+ibs; //,file = "table_ibs.out";
+taux = ibs.tx/3600;
+tauz = ibs.tl/3600;
+
+//assign, echo = "tauxz.out";
+value, taux, tauz;
+assign, echo = terminal;
+
+stop;
